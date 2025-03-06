@@ -2,17 +2,16 @@ import cloudinary from "cloudinary";
 import cors from "cors";
 import dotenv from "dotenv";
 import express, { Application, Request, Response } from "express";
+import fs from "fs";
 import { createServer } from "http";
 import morgan from "morgan";
+import path from "path";
+import swaggerUi from "swagger-ui-express";
 import YAML from "yaml";
 import { errorHandler } from "./middlewares/error.middlewares";
 import { v1Routes } from "./routes/v1";
 import { v2Routes } from "./routes/v2";
 import { v3Routes } from "./routes/v3";
-
-import fs from "fs";
-import path from "path";
-import swaggerUi from "swagger-ui-express";
 dotenv.config();
 
 cloudinary.v2.config({
@@ -25,15 +24,10 @@ const app: Application = express();
 
 export const httpServer = createServer(app);
 
-// const __filename = fileURLToPath(import.meta.url);
-// const __dirname = path.dirname(__filename);
-
 const file = fs.readFileSync(
   path.resolve(__dirname, "../swagger.yaml"),
   "utf8"
 );
-
-// const swaggerDoc = YAML.parse(fs.readFileSync(file, 'utf8'));
 
 const swaggerDocument = YAML.parse(file);
 
