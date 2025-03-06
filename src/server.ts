@@ -1,10 +1,15 @@
 import dotenv from "dotenv";
 import { httpServer } from "./app";
 import logger from "./logger/winston.log";
-
+import path from 'path'
+import fs from 'fs'
 dotenv.config();
 
+
+
+
 const startServer = () => {
+
   httpServer.listen(process.env.PORT || 8080, () => {
     logger.info(
       `📑 Visit the documentation at: http://localhost:${

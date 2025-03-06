@@ -1,6 +1,5 @@
 import bcrypt from "bcryptjs";
 import cloudinary from "cloudinary";
-import dotenv from "dotenv";
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { prisma } from "../../db/index"; // Assuming Prisma Client is set up
@@ -12,7 +11,6 @@ import {
   generateTemporaryToken,
 } from "../../utils/generate.tokens";
 import { emailVerificationMailgenContent, sendEmail } from "../../utils/mail";
-
 
 interface User {
   id: string;

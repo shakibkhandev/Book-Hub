@@ -1,7 +1,7 @@
 {
   "name": "book-hub",
   "version": "1.0.0",
-  "description": "This is a open source project",
+  "description": "Book-Hub is an open-source platform designed for book lovers and libraries. It helps manage books, track reading progress, and facilitate seamless book sharing.",
   "main": "dist/server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -16,7 +16,11 @@
     "type": "git",
     "url": "git@github.com:shakibkhandev/Book-Hub.git"
   },
-  "keywords": ["API", "Book Hub", "API Model"],
+  "keywords": [
+    "API",
+    "Book Hub",
+    "API Model"
+  ],
   "author": "Shakib Khan",
   "license": "ISC",
   "type": "commonjs",
@@ -30,6 +34,7 @@
     "@types/multer": "^1.4.12",
     "@types/node": "^22.13.8",
     "@types/nodemailer": "^6.4.17",
+    "@types/swagger-ui-express": "^4.1.8",
     "prettier": "^3.5.2",
     "prisma": "^6.4.1",
     "tsc-watch": "^6.2.1",
@@ -53,7 +58,9 @@
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.10.0",
     "path": "^0.12.7",
+    "swagger-ui-express": "^5.0.1",
     "winston": "^3.17.0",
+    "yaml": "^2.7.0",
     "zod": "^3.24.2"
   }
 }
