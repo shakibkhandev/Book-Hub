@@ -1,0 +1,84 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  USER
+  AUTHOR
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model User {
+  id        String     @id @default(uuid())
+  name      String
+  email     String     @unique
+  password  String
+  role      Role       @default(USER)
+  avatar    String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  isEmailVerified Boolean @default(false)
+  refreshToken String?
+  forgotPasswordToken String?
+  forgotPasswordExpiry DateTime?
+  emailVerificationToken String?
+  emailVerificationExpiry DateTime?
+  writtenBooks Book[]   // Books written by the user
+  reviews      Review[] // Reviews by the user
+  ratings      Rating[] // Ratings given by the user
+  favorites    Favorite[] // Books marked as favorite by the user
+}
+
+model Book {
+  id          String   @id @default(uuid())
+  title       String
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id])
+  avatar      String
+  genre       String
+  description String
+  publishedDate String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  reviews      Review[]  // Reviews of the book
+  ratings      Rating[]  // Ratings of the book
+  favoritesBy    Favorite[] // List of users who marked the book as a favorite
+}
+
+model Review {
+  id         String   @id @default(uuid())
+  bookId     String
+  book       Book     @relation(fields: [bookId], references: [id])
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+}
+
+model Rating {
+  id         String   @id @default(uuid())
+  bookId     String
+  book       Book     @relation(fields: [bookId], references: [id])
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+}
+
+model Favorite {
+  id       String @id @default(uuid())
+  userId   String
+  bookId   String
+  user     User   @relation(fields: [userId], references: [id])
+  book     Book   @relation(fields: [bookId], references: [id])
+
+  @@unique([userId, bookId]) // Ensures a user can only mark a book as favorite once
+}
+
