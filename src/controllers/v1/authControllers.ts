@@ -34,23 +34,17 @@ export const SignInFunction = asyncHandler(
     // Find the user by email from the database
     const user = await prisma.user.findUnique({
       where: { email },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        avatar: true,
-        password: true,
-        role: true,
+      include: {
         apiKeys: {
           where: {
             isExpired: false,
           },
           select: {
-            apiKey: true,
             keyType: true,
-          },
-        },
-      },
+            apiKey: true,
+          }
+        }
+      }
     });
 
     console.log(user);
@@ -170,13 +164,13 @@ export const SignUpFunction = asyncHandler(
         );
         uploadStream.end(avatar.buffer);
       });
-    }else{
+    } else {
       const nameParts = name.split(" "); // Split the name into words
       const firstNameInitial = nameParts[0].charAt(0); // Get the first letter of the first word
       const lastNameInitial = nameParts[nameParts.length - 1].charAt(0); // Get the first letter of the last word
-      
+
       const nameShort = firstNameInitial + lastNameInitial;
-      const urlString = `https://placehold.co/600x400?text=${nameShort}`
+      const urlString = `https://placehold.co/600x400?text=${nameShort}`;
       avatarUrl = urlString;
     }
 
