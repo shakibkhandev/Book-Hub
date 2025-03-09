@@ -24,12 +24,9 @@ const app: Application = express();
 
 export const httpServer = createServer(app);
 
-const file = fs.readFileSync(
-  path.resolve(__dirname, "../swagger.yaml"),
-  "utf8"
+const swaggerDocument = YAML.parse(
+  fs.readFileSync(path.join(__dirname, "../swagger.yaml"), "utf8")
 );
-
-const swaggerDocument = YAML.parse(file);
 
 // Middleware to parse JSON bodies
 
