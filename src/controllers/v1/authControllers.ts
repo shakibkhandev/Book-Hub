@@ -34,17 +34,23 @@ export const SignInFunction = asyncHandler(
     // Find the user by email from the database
     const user = await prisma.user.findUnique({
       where: { email },
-      include: {
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        avatar: true,
+        password: true,
+        role: true,
         apiKeys: {
           where: {
             isExpired: false,
           },
           select: {
-            keyType: true,
             apiKey: true,
-          }
-        }
-      }
+            keyType: true,
+          },
+        },
+      },
     });
 
     console.log(user);
