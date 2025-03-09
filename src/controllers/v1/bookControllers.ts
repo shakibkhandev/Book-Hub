@@ -34,6 +34,30 @@ export const createBook = asyncHandler(async (req: CustomRequest, res) => {
 
   const authorId = req.user.id;
 
+  const userAuthor = await prisma.user.findUnique({
+    where:{
+      id : authorId
+    },
+    select: {
+      id: true,
+      role : true
+    }
+  })
+
+  if(!userAuthor){
+    return res.status(403).json({
+      success: false,
+      error: "You can't access this content. Please Re-Login"
+    })
+  }
+  if(userAuthor.role !== "AUTHOR"){
+    return res.status(403).json({
+      success: false,
+      error: "Unauthorized to create book. You are not an Author"
+    })
+  }
+
+
   const parsedBody = createBookSchema.safeParse(req.body);
   if (!parsedBody.success) {
     return res
@@ -70,9 +94,11 @@ export const createBook = asyncHandler(async (req: CustomRequest, res) => {
   );
 });
 
-export const updateBook = asyncHandler(async (req, res) => {
-  const { title, authorId, avatar, genre, description, publishedDate } =
+export const updateBook = asyncHandler(async (req  :CustomRequest, res) => {
+  const { title, avatar, genre, description, publishedDate } =
     req.body;
+
+  
   const parsedBody = updateBookSchema.safeParse(req.body);
   if (!parsedBody.success) {
     return res
@@ -80,9 +106,27 @@ export const updateBook = asyncHandler(async (req, res) => {
       .json({ success: false, error: parsedBody.error.errors });
   }
 
+  const userAuthor = await prisma.user.findUnique({
+    where:{
+      id : req.user.id,
+      role : "AUTHOR"
+    },
+    select: {
+      id: true,
+      role : true
+    }
+  })
+  if(!userAuthor){
+    return res.status(403).json({
+      success: false,
+      error: "You can't access this content. You are not an Author"
+    })
+  }
+
   const book = await prisma.book.findUnique({
     where: {
       id: req.params.id,
+      authorId: req.user.id
     },
   });
 
@@ -124,10 +168,32 @@ export const updateBook = asyncHandler(async (req, res) => {
   );
 });
 
-export const deleteBook = asyncHandler(async (req, res) => {
+export const deleteBook = asyncHandler(async (req : CustomRequest, res) => {
+
+  const userAuthor = await prisma.user.findUnique({
+    where:{
+      id : req.user.id,
+      role : "AUTHOR"
+    },
+    select: {
+      id: true,
+      role : true
+    }
+  })
+
+  if(!userAuthor){
+    return res.status(403).json({
+      success: false,
+      error: "You can't access this content. You are not an Author"
+    })
+  }
+  
+
+
   const book = await prisma.book.findUnique({
     where: {
       id: req.params.id,
+      authorId: req.user.id,
     },
   });
 

@@ -8,6 +8,12 @@ export const getAuthors = asyncHandler(async (req, res) => {
     where: {
       role: "AUTHOR",
     },
+    select:{
+      id: true,
+      name: true,
+      email: true,
+      avatar: true,
+    },
     take: 10,
   });
 
