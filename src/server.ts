@@ -9,7 +9,8 @@ dotenv.config();
 
 
 const startServer = () => {
-
+  console.log(path.join(process.cwd(), "swagger.yaml"));
+  
   httpServer.listen(process.env.PORT || 8080, () => {
     logger.info(
       `📑 Visit the documentation at: http://localhost:${
