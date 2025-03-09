@@ -11,6 +11,8 @@ import { errorHandler } from "./middlewares/error.middlewares";
 import { v1Routes } from "./routes/v1";
 import { v2Routes } from "./routes/v2";
 import { v3Routes } from "./routes/v3";
+import fs from "fs"
+import path from "path"
 dotenv.config();
 
 cloudinary.v2.config({
@@ -23,12 +25,12 @@ const app: Application = express();
 
 export const httpServer = createServer(app);
 
-// const swaggerDocument = YAML.parse(
-//   fs.readFileSync(
-//     path.join(__dirname, "swagger.yaml"),
-//     "utf8"
-//   )
-// );
+const swaggerDocument = YAML.parse(
+  fs.readFileSync(
+    path.join(__dirname, "../swagger.yaml"),
+    "utf8"
+  )
+);
 
 // Middleware to parse JSON bodies
 
@@ -62,16 +64,16 @@ app.use("/api/v1/", v1Routes);
 app.use("/api/v2/", v2Routes);
 app.use("/api/v3/", v3Routes);
 
-// app.use(
-//   "/swagger",
-//   swaggerUi.serve,
-//   swaggerUi.setup(swaggerDocument, {
-//     swaggerOptions: {
-//       docExpansion: "none", // keep all the sections collapsed by default
-//     },
-//     customSiteTitle: "Book Hub API docs",
-//   })
-// );
+app.use(
+  "/swagger",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerDocument, {
+    swaggerOptions: {
+      docExpansion: "none", // keep all the sections collapsed by default
+    },
+    customSiteTitle: "Book Hub API docs",
+  })
+);
 
 
 // Error handling middleware
