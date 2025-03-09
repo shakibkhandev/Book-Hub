@@ -53,7 +53,6 @@ export const SignInFunction = asyncHandler(
       },
     });
 
-    console.log(user);
 
     if (!user) {
       res.status(400).json({ message: "User not found" });
