@@ -30,19 +30,6 @@ export const httpServer = createServer(app);
 //   )
 // );
 
-const SWAGGER_URL =
-  "https://cdn.jsdelivr.net/gh/shakibkhandev/Book-Hub@main/swagger.yaml";
-
-async function loadSwagger() {
-  try {
-    const response = await axios.get(SWAGGER_URL);
-    return YAML.parse(response.data); // Convert YAML string to JS object
-  } catch (error) {
-    console.error("Error loading Swagger YAML:", error);
-    return null;
-  }
-}
-
 // Middleware to parse JSON bodies
 
 const middleware = [
@@ -86,23 +73,6 @@ app.use("/api/v3/", v3Routes);
 //   })
 // );
 
-(async () => {
-  const swaggerDocument = await loadSwagger();
-  if (swaggerDocument) {
-    app.use(
-      "/swagger",
-      swaggerUi.serve,
-      swaggerUi.setup(swaggerDocument, {
-        swaggerOptions: {
-          docExpansion: "none", // keep all the sections collapsed by default
-        },
-        customSiteTitle: "Book Hub API docs",
-      })
-    );
-    console.log("Swagger loaded successfully!");
-  } else {
-    console.log("Swagger could not be loaded.");
-  }
-})();
+
 // Error handling middleware
 app.use(errorHandler);
