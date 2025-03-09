@@ -1,9 +1,10 @@
 import { prisma } from "../../db";
+import { CustomRequest } from "../../types";
 import { ApiResponse } from "../../utils/APIResponse";
 import { asyncHandler } from "../../utils/asyncHandler";
 
 export const getAuthors = asyncHandler(async (req, res) => {
-  const authors = prisma.user.findMany({
+  const authors = await prisma.user.findMany({
     where: {
       role: "AUTHOR",
     },
@@ -16,7 +17,7 @@ export const getAuthors = asyncHandler(async (req, res) => {
 });
 
 export const getAuthorById = asyncHandler(async (req, res) => {
-  const author = prisma.user.findUnique({
+  const author = await prisma.user.findUnique({
     where: {
       id: req.params.id,
       role: "AUTHOR",
@@ -32,10 +33,32 @@ export const getAuthorById = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, author, "Author retrieved successfully"));
 });
 
-export const joinAsAuthor = asyncHandler(async (req, res) => {
-  const {} = req.body;
+export const joinAsAuthor = asyncHandler(async (req: CustomRequest, res) => {
+  const userId = req.user.id;
+  await prisma.user.update({
+    where: { id: userId },
+    data: { role: "AUTHOR" },
+  });
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, null, "Now You are an Author"));
 });
 
-export const leaveAsAuthor = asyncHandler(async (req, res) => {
-  res.send("updateAuthor");
+export const leaveAsAuthor = asyncHandler(async (req : CustomRequest, res) => {
+  const userId = req.user.id;
+  await prisma.user.update({
+    where: { id: userId },
+    data: { role: "USER" },
+  });
+
+  await prisma.book.deleteMany({
+    where : {
+      authorId : userId
+    }
+  })
+
+  res
+   .status(200)
+   .json(new ApiResponse(200, null, "You are not An Author Any More. Your All Book Removed From The Book Hub Library"));
 });

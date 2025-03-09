@@ -19,6 +19,12 @@ datasource db {
 }
 
 
+enum API_KEY_TYPE {
+  BRONZE
+  SILVER
+  GOLD
+}
+
 model User {
   id        String     @id @default(uuid())
   name      String
@@ -34,17 +40,20 @@ model User {
   forgotPasswordExpiry DateTime?
   emailVerificationToken String?
   emailVerificationExpiry DateTime?
-  writtenBooks Book[]   // Books written by the user
+  writtenBooks Book[] // Books written by the user
   reviews      Review[] // Reviews by the user
   ratings      Rating[] // Ratings given by the user
   favorites    Favorite[] // Books marked as favorite by the user
+  apiKeys     ApiKey[] // API keys associated with the user
 }
+
+
 
 model Book {
   id          String   @id @default(uuid())
   title       String
   authorId    String
-  author      User     @relation(fields: [authorId], references: [id])
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   avatar      String
   genre       String
   description String
@@ -59,9 +68,9 @@ model Book {
 model Review {
   id         String   @id @default(uuid())
   bookId     String
-  book       Book     @relation(fields: [bookId], references: [id])
+  book       Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
   userId     String
-  user       User     @relation(fields: [userId], references: [id])
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   review     String
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
@@ -70,9 +79,9 @@ model Review {
 model Rating {
   id         String   @id @default(uuid())
   bookId     String
-  book       Book     @relation(fields: [bookId], references: [id])
+  book       Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
   userId     String
-  user       User     @relation(fields: [userId], references: [id])
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   rating     Int 
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
@@ -82,9 +91,23 @@ model Favorite {
   id       String @id @default(uuid())
   userId   String
   bookId   String
-  user     User   @relation(fields: [userId], references: [id])
-  book     Book   @relation(fields: [bookId], references: [id])
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book     Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
 
   @@unique([userId, bookId]) // Ensures a user can only mark a book as favorite once
 }
 
+model ApiKey {
+  id                String   @id @default(uuid())
+  keyType           API_KEY_TYPE @default(BRONZE)
+  ownerId           String
+  owner             User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  apiKey            String   @unique @default(cuid())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  lastUsedAt        DateTime? @default(now())
+  isExpired         Boolean  @default(false)
+  totalRequests     Int      @default(1000) // Total requests allocated
+  usedRequests      Int      @default(0)    // Number of requests used
+  remainingRequests Int      @default(1000) // Number of requests left
+}

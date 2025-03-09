@@ -1,8 +1,8 @@
 import bcrypt from "bcryptjs";
 import cloudinary from "cloudinary";
 import { Request, Response } from "express";
-import jwt from "jsonwebtoken";
 import { prisma } from "../../db/index"; // Assuming Prisma Client is set up
+import { SignInSchema, SignUpSchema } from "../../schema/authSchema";
 import { APIError } from "../../utils/APIError";
 import { ApiResponse } from "../../utils/APIResponse";
 import { asyncHandler } from "../../utils/asyncHandler";
@@ -12,14 +12,6 @@ import {
 } from "../../utils/generate.tokens";
 import { emailVerificationMailgenContent, sendEmail } from "../../utils/mail";
 
-interface User {
-  id: string;
-  email: string;
-  name?: string;
-  avatar?: string | null;
-  password?: string | undefined;
-}
-
 const cloudinaryImageUploadOptions = {
   use_filename: true,
   unique_filename: false,
@@ -27,26 +19,16 @@ const cloudinaryImageUploadOptions = {
   folder: "Book Hub",
 };
 
-// Helper function to generate JWT token
-const generateToken = (user: User): string => {
-  return jwt.sign(
-    { id: user.id, email: user.email },
-    process.env.JWT_SECRET || "default_secret", // Use env variable for secret
-    {
-      expiresIn: "1h", // Token expires in 1 hour
-    }
-  );
-};
-
 // SignIn Function (login)
 export const SignInFunction = asyncHandler(
-  async (req: Request, res: Response): Promise<void> => {
+  async (req: Request, res: Response): Promise<any> => {
     const { email, password } = req.body;
 
-    // Validate input
-    if (!email || !password) {
-      res.status(400).json({ message: "Email and password are required" });
-      return;
+    const parsedBody = SignInSchema.safeParse(req.body);
+    if (!parsedBody.success) {
+      return res
+        .status(400)
+        .json({ success: false, error: parsedBody.error.errors });
     }
 
     // Find the user by email from the database
@@ -59,8 +41,19 @@ export const SignInFunction = asyncHandler(
         avatar: true,
         password: true,
         role: true,
+        apiKeys: {
+          where: {
+            isExpired: false,
+          },
+          select: {
+            apiKey: true,
+            keyType: true,
+          },
+        },
       },
     });
+
+    console.log(user);
 
     if (!user) {
       res.status(400).json({ message: "User not found" });
@@ -97,6 +90,7 @@ export const SignInFunction = asyncHandler(
               name: user.name,
               avatar: user.avatar,
               role: user.role,
+              apiKeys: user.apiKeys,
             },
             accessToken: accessToken,
             refreshToken: refreshToken,
@@ -111,21 +105,28 @@ export const SignUpFunction = asyncHandler(
   async (req: Request, res: Response): Promise<Response> => {
     const { email, password, name } = req.body;
 
-    // Validate input
-    if (!email || !password || !name) {
-      throw new APIError(400, "Name, email, password, and avatar are required");
+    const parsedBody = SignUpSchema.safeParse(req.body);
+    if (!parsedBody.success) {
+      return res
+        .status(400)
+        .json({ success: false, error: parsedBody.error.errors });
     }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      throw new APIError(400, "Invalid email format");
-    }
+    // // Validate input
+    // if (!email || !password || !name) {
+    //   throw new APIError(400, "Name, email, password, and avatar are required");
+    // }
 
-    // Validate password strength (at least 6 characters)
-    if (password.length < 6) {
-      throw new APIError(400, "Password must be at least 6 characters long");
-    }
+    // // Validate email format
+    // const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    // if (!emailRegex.test(email)) {
+    //   throw new APIError(400, "Invalid email format");
+    // }
+
+    // // Validate password strength (at least 6 characters)
+    // if (password.length < 6) {
+    //   throw new APIError(400, "Password must be at least 6 characters long");
+    // }
 
     // Check if the email already exists in the database
     const userExists = await prisma.user.findUnique({
@@ -143,10 +144,13 @@ export const SignUpFunction = asyncHandler(
     const avatar = req.file;
 
     let avatarUrl = "";
-    // if (avatar) {
-    //   const result = await cloudinary.v2.uploader.upload(avatar.path, cloudinaryImageUploadOptions);
-    //   avatarUrl = result.secure_url;
-    // }
+    if (avatar) {
+      const result = await cloudinary.v2.uploader.upload(
+        avatar.path,
+        cloudinaryImageUploadOptions
+      );
+      avatarUrl = result.secure_url;
+    }
 
     // Passed Image With Stream
     if (avatar) {
@@ -166,6 +170,14 @@ export const SignUpFunction = asyncHandler(
         );
         uploadStream.end(avatar.buffer);
       });
+    }else{
+      const nameParts = name.split(" "); // Split the name into words
+      const firstNameInitial = nameParts[0].charAt(0); // Get the first letter of the first word
+      const lastNameInitial = nameParts[nameParts.length - 1].charAt(0); // Get the first letter of the last word
+      
+      const nameShort = firstNameInitial + lastNameInitial;
+      const urlString = `https://placehold.co/600x400?text=${nameShort}`
+      avatarUrl = urlString;
     }
 
     const { hashedToken, tokenExpiry, unHashedToken } =

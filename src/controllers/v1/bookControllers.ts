@@ -1,5 +1,6 @@
 import { prisma } from "../../db";
 import { createBookSchema, updateBookSchema } from "../../schema/bookSchema";
+import { CustomRequest } from "../../types";
 import { ApiResponse } from "../../utils/APIResponse";
 import { asyncHandler } from "../../utils/asyncHandler";
 
@@ -28,9 +29,11 @@ export const getBookById = asyncHandler(async (req, res) => {
   res.json(new ApiResponse(200, book, "Book retrieved successfully"));
 });
 
-export const createBook = asyncHandler(async (req, res) => {
-  const { title, authorId, avatar, genre, description, publishedDate } =
-    req.body;
+export const createBook = asyncHandler(async (req: CustomRequest, res) => {
+  const { title, avatar, genre, description, publishedDate } = req.body;
+
+  const authorId = req.user.id;
+
   const parsedBody = createBookSchema.safeParse(req.body);
   if (!parsedBody.success) {
     return res

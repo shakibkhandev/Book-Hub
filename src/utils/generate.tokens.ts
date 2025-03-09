@@ -5,6 +5,14 @@ import { USER_TEMPORARY_TOKEN_EXPIRY } from "../constants";
 import { prisma } from "../db";
 import { APIError } from "./APIError";
 dotenv.config();
+interface User {
+  id: string;
+  email: string;
+  name?: string;
+  avatar?: string | null;
+  password?: string | undefined;
+}
+
 
 // Type definition for the return object
 interface TokenResponse {
@@ -48,7 +56,7 @@ export const generateRefreshToken = (user: any) => {
 
 export const generateAccessAndRefreshToken = async (userId: string) => {
   try {
-    const user = prisma.user.findUnique({
+    const user = await prisma.user.findUnique({
       where: {
         id: userId,
       },
@@ -58,6 +66,7 @@ export const generateAccessAndRefreshToken = async (userId: string) => {
       },
     });
 
+    
     if (!user) {
       throw new Error("User not found");
     }
@@ -84,3 +93,13 @@ export const generateAccessAndRefreshToken = async (userId: string) => {
   }
 };
 
+// Helper function to generate JWT token
+export const generateToken = (user: User): string => {
+  return jwt.sign(
+    { id: user.id, email: user.email },
+    process.env.JWT_SECRET as string, // Use env variable for secret
+    {
+      expiresIn: "1h", // Token expires in 1 hour
+    }
+  );
+};

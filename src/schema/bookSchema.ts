@@ -2,7 +2,6 @@ import { z } from "zod";
 
 export const createBookSchema = z.object({
   title: z.string().min(1).max(255),
-  authorId: z.string().uuid(),
   avatar: z.string().url(),
   genre: z.string().min(1).max(255),
   description: z.string().min(1).max(255),
@@ -11,7 +10,6 @@ export const createBookSchema = z.object({
 
 export const updateBookSchema = z.object({
   title: z.string().min(1).max(255).optional(),
-  authorId: z.string().uuid(),
   avatar: z.string().url().optional(),
   genre: z.string().min(1).max(255).optional(),
   description: z.string().min(1).max(255).optional(),

@@ -11,6 +11,7 @@ import { errorHandler } from "./middlewares/error.middlewares";
 import { v1Routes } from "./routes/v1";
 import { v2Routes } from "./routes/v2";
 import { v3Routes } from "./routes/v3";
+import bodyParser from "body-parser";
 import fs from "fs"
 import path from "path"
 dotenv.config();
@@ -35,8 +36,8 @@ const swaggerDocument = YAML.parse(
 // Middleware to parse JSON bodies
 
 const middleware = [
-  express.json({ limit: "16kb" }),
-  express.urlencoded({ extended: true, limit: "16kb" }),
+  bodyParser.json({ limit: "16kb" }),
+  bodyParser.urlencoded({ extended: true, limit: "16kb" }),
   morgan("dev"),
 ];
 app.use(middleware);
@@ -45,8 +46,8 @@ app.use(
   cors({
     origin: "http://localhost:3000",
     methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization", "BOOK_API_KEY"],
-    exposedHeaders: ["Authorization"],
+    allowedHeaders: ["Content-Type", "Authorization", "BOOK_HUB_API_KEY"],
+    exposedHeaders: ["Authorization", "BOOK_HUB_API_KEY"],
     preflightContinue: false,
     optionsSuccessStatus: 204,
     credentials: true,

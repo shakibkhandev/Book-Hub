@@ -8,7 +8,7 @@ export const authorRoutes = express.Router();
 
 // import the controller functions
 authorRoutes.get("/", getAuthors);
-authorRoutes.get("/:id", getAuthorById);
-authorRoutes.post("/join/", joinAsAuthor);
-authorRoutes.post("/leave/", leaveAsAuthor);
+authorRoutes.get("/author/:id", getAuthorById);
+authorRoutes.post("/join", joinAsAuthor);
+authorRoutes.post("/leave", leaveAsAuthor);
 

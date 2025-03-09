@@ -1,4 +1,9 @@
 import express from "express";
+import {
+  verifyToken,
+  verifyTokenWithAPI,
+} from "../../middlewares/verify.token.middlewares";
+import { apiKeyRoutes } from "./apiKeyRoutes";
 import { authorRoutes } from "./authorRoutes";
 import { authRoutes } from "./authRoutes";
 import { bookRoutes } from "./bookRoutes";
@@ -9,9 +14,9 @@ import { userRoutes } from "./userRoutes";
 export const v1Routes = express.Router();
 
 v1Routes.use("/auth", authRoutes);
-v1Routes.use("/books", bookRoutes);
-v1Routes.use("/authors", authorRoutes);
-v1Routes.use("/users", userRoutes);
-v1Routes.use("/reviews", reviewRoutes);
-v1Routes.use("/ratings", ratingRoutes);
-
+v1Routes.use("/books", verifyTokenWithAPI, bookRoutes);
+v1Routes.use("/authors", verifyTokenWithAPI, authorRoutes);
+v1Routes.use("/users", verifyTokenWithAPI, userRoutes);
+v1Routes.use("/reviews", verifyTokenWithAPI, reviewRoutes);
+v1Routes.use("/ratings", verifyTokenWithAPI, ratingRoutes);
+v1Routes.use("/apikey", verifyToken, apiKeyRoutes);
