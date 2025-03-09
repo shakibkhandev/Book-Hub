@@ -1,11 +1,10 @@
+import axios from "axios";
 import cloudinary from "cloudinary";
 import cors from "cors";
 import dotenv from "dotenv";
 import express, { Application, Request, Response } from "express";
-import fs from "fs";
 import { createServer } from "http";
 import morgan from "morgan";
-import path from "path";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yaml";
 import { errorHandler } from "./middlewares/error.middlewares";
@@ -24,9 +23,25 @@ const app: Application = express();
 
 export const httpServer = createServer(app);
 
-const swaggerDocument = YAML.parse(
-  fs.readFileSync(path.join(process.cwd(), "swagger.yaml"), "utf8")
-);
+// const swaggerDocument = YAML.parse(
+//   fs.readFileSync(
+//     path.join(__dirname, "swagger.yaml"),
+//     "utf8"
+//   )
+// );
+
+const SWAGGER_URL =
+  "https://cdn.jsdelivr.net/gh/shakibkhandev/Book-Hub@main/swagger.yaml";
+
+async function loadSwagger() {
+  try {
+    const response = await axios.get(SWAGGER_URL);
+    return YAML.parse(response.data); // Convert YAML string to JS object
+  } catch (error) {
+    console.error("Error loading Swagger YAML:", error);
+    return null;
+  }
+}
 
 // Middleware to parse JSON bodies
 
@@ -60,16 +75,34 @@ app.use("/api/v1/", v1Routes);
 app.use("/api/v2/", v2Routes);
 app.use("/api/v3/", v3Routes);
 
-app.use(
-  "/swagger",
-  swaggerUi.serve,
-  swaggerUi.setup(swaggerDocument, {
-    swaggerOptions: {
-      docExpansion: "none", // keep all the sections collapsed by default
-    },
-    customSiteTitle: "Book Hub API docs",
-  })
-);
+// app.use(
+//   "/swagger",
+//   swaggerUi.serve,
+//   swaggerUi.setup(swaggerDocument, {
+//     swaggerOptions: {
+//       docExpansion: "none", // keep all the sections collapsed by default
+//     },
+//     customSiteTitle: "Book Hub API docs",
+//   })
+// );
 
+(async () => {
+  const swaggerDocument = await loadSwagger();
+  if (swaggerDocument) {
+    app.use(
+      "/swagger",
+      swaggerUi.serve,
+      swaggerUi.setup(swaggerDocument, {
+        swaggerOptions: {
+          docExpansion: "none", // keep all the sections collapsed by default
+        },
+        customSiteTitle: "Book Hub API docs",
+      })
+    );
+    console.log("Swagger loaded successfully!");
+  } else {
+    console.log("Swagger could not be loaded.");
+  }
+})();
 // Error handling middleware
 app.use(errorHandler);
