@@ -1,4 +1,5 @@
 import { prisma } from "../../db";
+import { generateETag } from "../../middlewares/verify.token.middlewares";
 import { createBookSchema, updateBookSchema } from "../../schema/bookSchema";
 import { CustomRequest } from "../../types";
 import { ApiResponse } from "../../utils/APIResponse";
@@ -9,7 +10,17 @@ export const getBooks = asyncHandler(async (req, res) => {
     take: req.query.limit ? parseInt(req.query.limit as string, 10) : 10,
   });
 
-  res.json(new ApiResponse(200, books, "Books retrieved successfully"));
+  const Etag = generateETag(books);
+
+  if (req.headers["if-none-match"] === Etag) {
+    console.log(true);
+    return res.status(304).send("Not Modified");
+  }
+
+  res
+    .set({ Etag: Etag })
+    .set("Cache-Control", "public, max-age=600, stale-while-revalidate=30")
+    .json(new ApiResponse(200, books, "Books retrieved successfully"));
 });
 
 export const getBookById = asyncHandler(async (req, res) => {
@@ -35,28 +46,27 @@ export const createBook = asyncHandler(async (req: CustomRequest, res) => {
   const authorId = req.user.id;
 
   const userAuthor = await prisma.user.findUnique({
-    where:{
-      id : authorId
+    where: {
+      id: authorId,
     },
     select: {
       id: true,
-      role : true
-    }
-  })
+      role: true,
+    },
+  });
 
-  if(!userAuthor){
+  if (!userAuthor) {
     return res.status(403).json({
       success: false,
-      error: "You can't access this content. Please Re-Login"
-    })
+      error: "You can't access this content. Please Re-Login",
+    });
   }
-  if(userAuthor.role !== "AUTHOR"){
+  if (userAuthor.role !== "AUTHOR") {
     return res.status(403).json({
       success: false,
-      error: "Unauthorized to create book. You are not an Author"
-    })
+      error: "Unauthorized to create book. You are not an Author",
+    });
   }
-
 
   const parsedBody = createBookSchema.safeParse(req.body);
   if (!parsedBody.success) {
@@ -94,11 +104,9 @@ export const createBook = asyncHandler(async (req: CustomRequest, res) => {
   );
 });
 
-export const updateBook = asyncHandler(async (req  :CustomRequest, res) => {
-  const { title, avatar, genre, description, publishedDate } =
-    req.body;
+export const updateBook = asyncHandler(async (req: CustomRequest, res) => {
+  const { title, avatar, genre, description, publishedDate } = req.body;
 
-  
   const parsedBody = updateBookSchema.safeParse(req.body);
   if (!parsedBody.success) {
     return res
@@ -107,26 +115,26 @@ export const updateBook = asyncHandler(async (req  :CustomRequest, res) => {
   }
 
   const userAuthor = await prisma.user.findUnique({
-    where:{
-      id : req.user.id,
-      role : "AUTHOR"
+    where: {
+      id: req.user.id,
+      role: "AUTHOR",
     },
     select: {
       id: true,
-      role : true
-    }
-  })
-  if(!userAuthor){
+      role: true,
+    },
+  });
+  if (!userAuthor) {
     return res.status(403).json({
       success: false,
-      error: "You can't access this content. You are not an Author"
-    })
+      error: "You can't access this content. You are not an Author",
+    });
   }
 
   const book = await prisma.book.findUnique({
     where: {
       id: req.params.id,
-      authorId: req.user.id
+      authorId: req.user.id,
     },
   });
 
@@ -168,27 +176,24 @@ export const updateBook = asyncHandler(async (req  :CustomRequest, res) => {
   );
 });
 
-export const deleteBook = asyncHandler(async (req : CustomRequest, res) => {
-
+export const deleteBook = asyncHandler(async (req: CustomRequest, res) => {
   const userAuthor = await prisma.user.findUnique({
-    where:{
-      id : req.user.id,
-      role : "AUTHOR"
+    where: {
+      id: req.user.id,
+      role: "AUTHOR",
     },
     select: {
       id: true,
-      role : true
-    }
-  })
+      role: true,
+    },
+  });
 
-  if(!userAuthor){
+  if (!userAuthor) {
     return res.status(403).json({
       success: false,
-      error: "You can't access this content. You are not an Author"
-    })
+      error: "You can't access this content. You are not an Author",
+    });
   }
-  
-
 
   const book = await prisma.book.findUnique({
     where: {

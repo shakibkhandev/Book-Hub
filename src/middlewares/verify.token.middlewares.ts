@@ -4,6 +4,7 @@ import { prisma } from "../db";
 import { CustomRequest } from "../types";
 import { APIError } from "../utils/APIError";
 import { asyncHandler } from "../utils/asyncHandler";
+import crypto from "crypto";
 
 // Extend the Request type to include user
 
@@ -25,7 +26,6 @@ export const verifyToken = asyncHandler(
         return res.status(401).json({ message: "Invalid token" });
       }
 
-      console.log(decoded);
       
       req.user = decoded; // Assigning decoded token to req.user
       next();
@@ -92,3 +92,10 @@ export const verifyTokenWithAPI = asyncHandler(
     }
   }
 );
+
+
+export const generateETag = (data: any) => {
+  const hash = crypto.createHash("sha1");
+  hash.update(JSON.stringify(data));
+  return hash.digest("base64");
+};

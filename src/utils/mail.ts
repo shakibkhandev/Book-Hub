@@ -32,15 +32,26 @@ export const sendEmail = async (options: SendEmailOptions): Promise<void> => {
   // Generate an HTML email with the provided contents
   const emailHtml = mailGenerator.generate(options.mailgenContent);
 
-  // Create a Nodemailer transporter instance which is responsible to send a mail
-  const transporter = nodemailer.createTransport({
-    host: process.env.MAILTRAP_SMTP_HOST,
-    port: Number(process.env.MAILTRAP_SMTP_PORT), // Ensure port is treated as a number
-    auth: {
-      user: process.env.MAILTRAP_SMTP_USER,
-      pass: process.env.MAILTRAP_SMTP_PASS,
-    },
-  });
+
+  let transporter;
+
+  if(process.env.NODE_ENV === 'production'){
+    // Create a Nodemailer transporter instance which is responsible to send a mail
+     transporter = nodemailer.createTransport({
+      host: process.env.MAILTRAP_SMTP_HOST,
+      port: Number(process.env.MAILTRAP_SMTP_PORT), // Ensure port is treated as a number
+      auth: {
+        user: process.env.MAILTRAP_SMTP_USER,
+        pass: process.env.MAILTRAP_SMTP_PASS,
+      },
+    });
+
+  }else{
+     transporter = nodemailer.createTransport({
+      host: process.env.MAILHOG_SMTP_HOST,
+      port: Number(process.env.MAILHOG_SMTP_PORT), // Ensure port is treated as a number
+    });
+  }
 
   const mail = {
     from: "api.bookhub@gmail.com", // Sender's email

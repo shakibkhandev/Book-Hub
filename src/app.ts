@@ -46,8 +46,8 @@ app.use(
   cors({
     origin: "http://localhost:3000",
     methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization", "BOOK_HUB_API_KEY"],
-    exposedHeaders: ["Authorization", "BOOK_HUB_API_KEY"],
+    allowedHeaders: ["Content-Type", "Authorization", "BOOK_HUB_API_KEY", "if-none-match"],
+    exposedHeaders: ["Authorization", "BOOK_HUB_API_KEY", "if-none-match"],
     preflightContinue: false,
     optionsSuccessStatus: 204,
     credentials: true,

@@ -27,8 +27,21 @@ services:
     networks:
       - bookhub-network
 
+  mailhog:
+    image: mailhog/mailhog
+    container_name: bookhub-mailhog
+    restart: on-failure
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    volumes:
+      - mailhog:/var/lib/mailhog
+    networks:
+      - bookhub-network
+
 networks:
   bookhub-network:
 
 volumes:
   postgres:
+  mailhog:
